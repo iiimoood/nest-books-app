@@ -16,6 +16,11 @@ export class UsersService {
         id: true,
         email: true,
         role: true,
+        books: {
+          include: {
+            book: true,
+          },
+        },
       },
     });
   }

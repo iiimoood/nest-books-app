@@ -14,10 +14,14 @@ import { BooksService } from './books.service';
 import { CreateBookDTO } from './dtos/create-book-dto';
 import { UpdateBookDTO } from './dtos/update-book-dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('books')
 export class BooksController {
-  constructor(private readonly booksService: BooksService) {}
+  constructor(
+    private readonly booksService: BooksService,
+    private usersService: UsersService,
+  ) {}
 
   @Get()
   getAll(): any {
@@ -56,6 +60,20 @@ export class BooksController {
       throw new NotFoundException('Book not found');
 
     await this.booksService.updateById(id, bookData);
+    return { success: true };
+  }
+
+  @Post('/like')
+  @UseGuards(JwtAuthGuard)
+  public async like(
+    @Param('bookId', new ParseUUIDPipe()) bookId: string,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+  ) {
+    if (!(await this.booksService.getById(bookId)))
+      throw new NotFoundException('Book not found');
+    if (!(await this.usersService.getById(userId)))
+      throw new NotFoundException('User not found');
+    await this.booksService.like(bookId, userId);
     return { success: true };
   }
 }
